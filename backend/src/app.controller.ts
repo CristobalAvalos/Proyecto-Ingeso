@@ -16,7 +16,7 @@ export class HolaMundoController {
   constructor(private readonly holaMundoService: HolaMundoService) {}
 
   @Get('holamundo') 
-  getHolaMundo(): any[] {
+  getHolaMundo(): string {
     return this.holaMundoService.getHolaMundo();
   }
 }
