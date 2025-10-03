@@ -1,16 +1,18 @@
-#build
-FROM node:20-alpine AS dev-build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# run
+# Dockerfile para desarrollo con hot-reload
 FROM node:20-alpine
+
 WORKDIR /app
-COPY --from=dev-build /app/package*.json ./
-RUN npm install --only=production && npm cache clean --force
-COPY --from=dev-build /app/dist ./dist
+
+# Copiar package files
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluye dev dependencies para hot-reload)
+RUN npm install
+
+# El código se monta como volumen, no se copia aquí
+# Esto permite hot-reload automático
+
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+
+# Comando de desarrollo con hot-reload usando nodemon (más confiable en Docker)
+CMD ["npm", "run", "start:docker"]

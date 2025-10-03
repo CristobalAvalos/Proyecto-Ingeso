@@ -9,8 +9,8 @@ export class AppService {
 
 @Injectable()
 export class HolaMundoService {
-  getHolaMundo(): string {
-    return 'Chino chupalo kdjakjdkasjdk';
+  getHolaMundo(): { message: string } {
+    return { message: 'Chino chupalo kdjakjdkasjdk y AAAAaaa asadfadsfa' };
   }
 }
 

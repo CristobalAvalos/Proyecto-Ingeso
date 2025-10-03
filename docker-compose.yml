@@ -1,15 +1,29 @@
-version: "3.9"
 services:
   backend:
     build: ./backend
     container_name: nest-backend
     ports:
       - "3000:3000"
-
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=200
+    command: npm run start:docker
+    
   frontend:
     build: ./frontend
     container_name: react-frontend
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
     depends_on:
       - backend
