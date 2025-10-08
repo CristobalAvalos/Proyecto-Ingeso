@@ -1,10 +1,22 @@
 import { Injectable} from '@nestjs/common'
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class CatalogoService {
-    constructor(private readonly httpService: HttpService) {}
+    constructor(
+        private readonly httpService: HttpService,
+        private readonly configService: ConfigService,
+    ) {}
+
+    private getHeaders() {
+        return {
+            'Accept': 'application/json',
+            'Client-ID': this.configService.get<string>('IGDB_CLIENT_ID'),
+            'Authorization': `Bearer ${this.configService.get<string>('IGDB_ACCESS_TOKEN')}`,
+        };
+    }
 
     async obtenerCatalogo() {
 
@@ -19,11 +31,7 @@ export class CatalogoService {
                     & platforms = [130];
                     limit 500;`,
                     {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Client-ID': '2818d5lb3fg79zeu9qodkmlp0a9aq4',
-                            'Authorization': 'Bearer bwvw8ld4smj4h1os8g75j4ul9wlruv',
-                        },
+                        headers: this.getHeaders(),
                         
                     }
                 )
@@ -69,11 +77,7 @@ export class CatalogoService {
                     sort value desc;
                     limit 500;`,
                     {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Client-ID': '2818d5lb3fg79zeu9qodkmlp0a9aq4',
-                            'Authorization': 'Bearer bwvw8ld4smj4h1os8g75j4ul9wlruv',
-                        },
+                        headers: this.getHeaders(),
                     }
                 )
             );
@@ -102,11 +106,7 @@ export class CatalogoService {
                     where id = (${topGameIds.join(',')});
                     limit 500;`,
                     {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Client-ID': '2818d5lb3fg79zeu9qodkmlp0a9aq4',
-                            'Authorization': 'Bearer bwvw8ld4smj4h1os8g75j4ul9wlruv',
-                        },
+                        headers: this.getHeaders(),
                     }
                 )
             );
