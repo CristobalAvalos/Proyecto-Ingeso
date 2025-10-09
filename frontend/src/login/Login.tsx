@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,12 +15,16 @@ const Login: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
       <div className="max-w-sm w-full bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
         <div className="text-center">
-          <img
-            className="h-12 w-auto mx-auto"
-            src="https://www.svgrepo.com/show/352066/gamepad.svg"
-            
-            alt="Apple"
-          />
+          
+          {/*con esta wea volvemos al catalogo*/}
+          <Link to="/"> 
+            <img
+              className="h-14 w-auto mx-auto cursor-pointer" 
+              src="https://www.svgrepo.com/show/352066/gamepad.svg"
+              alt="Vovler al catalogo" 
+            />
+          </Link>
+          
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Sign in to your account
           </h2>
