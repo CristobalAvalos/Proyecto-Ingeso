@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 const Carrito: React.FC = () => {
   // Datos de ejemplo para el carrito
   const items = [
-    { id: 1, name: "Controlador Inalámbrico Pro", price: 59.99, quantity: 1 },
-    { id: 2, name: "Juego de Aventura Épica", price: 49.99, quantity: 2 },
+    { id: 1, name: "silson", price: 59.99, quantity: 1 },
+    { id: 2, name: "jolou nai", price: 49.99, quantity: 1 },
   ];
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -69,11 +69,8 @@ const Carrito: React.FC = () => {
                 <span>Subtotal:</span>
                 <span className="font-medium">${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Envío estimado:</span>
-                <span className="font-medium">${shipping.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+
+            <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                 <span className="text-lg font-bold text-gray-900 dark:text-white">Total:</span>
                 <span className="text-lg font-bold text-indigo-600">${total.toFixed(2)}</span>
               </div>
