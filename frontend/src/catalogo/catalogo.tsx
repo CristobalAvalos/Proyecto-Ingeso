@@ -125,7 +125,7 @@ function Catalogo() {
         return (
             <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-800">
                 <div className="flex flex-col items-center justify-center text-white">
-                    <h2 className="text-3xl font-bold mb-4">🔄 Cargando catálogo...</h2>
+                    <h2 className="text-3xl font-bold mb-4">Cargando catálogo...</h2>
                     <div className="w-12 h-12 border-4 border-t-white border-opacity-30 border-solid rounded-full animate-spin"></div>
                     <p className="mt-4 text-gray-300 text-lg text-center">
                         {selectedGenre !== 'todos'
@@ -142,7 +142,7 @@ function Catalogo() {
         return (
             <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-800">
                 <div className="text-center text-white p-8 rounded-xl bg-red-600 bg-opacity-80 backdrop-blur-sm shadow-2xl">
-                    <h2 className="text-3xl font-bold mb-4">❌ Error al cargar el catálogo</h2>
+                    <h2 className="text-3xl font-bold mb-4">Error al cargar el catálogo</h2>
                     <p className="mb-6">{error}</p>
                     <button className={primaryButtonClasses.replace('p-3', 'p-2.5')} onClick={fetchGames}>
                         🔄 Reintentar
