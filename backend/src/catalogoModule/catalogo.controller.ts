@@ -2,7 +2,7 @@ import { Controller, Get, HttpException, HttpStatus, Param} from '@nestjs/common
 import { CatalogoService } from './catalogo.service';
 import { get } from 'axios';
 
-
+//son los que reciben los fetch del front pa despues llamar al services
 @Controller('catalogo')
 export class CatalogoController {
     constructor(private readonly catalogoService: CatalogoService) {}
