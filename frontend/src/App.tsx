@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import Login from "./login/Login";
+import Login from "./login/login";
 import Catalogo from './catalogo/catalogo';
 import Carrito from './carrito/carrito';
 
