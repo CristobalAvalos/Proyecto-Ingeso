@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-// No import './catalogo.css'; needed, using Tailwind
+// Correcto
+import { useCart } from "../context/CartContext";
 
+// --- Interfaces (Game, Genre, Platform, Cover) ---
 interface Genre {
     id: number;
     name: string;
 }
-
 interface Platform {
     id: number;
     name: string;
 }
-
 interface Cover {
     id: number;
     url: string;
 }
-
 interface Game {
     id: number;
     name: string;
@@ -25,14 +24,20 @@ interface Game {
     total_rating?: number;
     total_rating_count?: number;
     first_release_date?: number;
+    price?: number;
 }
 
+
 function Catalogo() {
+    // --- Hooks de Estado ---
     const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedGenre, setSelectedGenre] = useState<string>('todos');
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const { addToCart } = useCart();
 
+    // --- Datos y Lógica ---
     const genres = [
         { id: 'todos', name: 'Todos los géneros' },
         { id: 'hack', name: 'Acción' },
@@ -50,15 +55,10 @@ function Catalogo() {
     const fetchGames = () => {
         setLoading(true);
         setError(null);
-
-        // NOTE: These URLs point to a local server (http://localhost:3000)
         const url = selectedGenre === 'todos'
             ? 'http://localhost:3000/catalogo/top500'
             : `http://localhost:3000/catalogo/genero/${selectedGenre}`;
-
         console.log(`🔍 Cargando: ${url}`);
-
-        // Simplified fetch with exponential backoff for robustness
         const attemptFetch = (retryCount = 0) => {
             fetch(url)
                 .then((res) => {
@@ -69,7 +69,15 @@ function Catalogo() {
                 })
                 .then((data) => {
                     console.log(`✅ ${data.length} juegos cargados`);
-                    setGames(data);
+                    
+                    // --- 👇 CAMBIO 1: Generar precio en formato Dólar (ej: 19.99 - 59.99) ---
+                    const gamesWithPrices = data.map((game: Game) => ({
+                        ...game,
+                        // Genera un precio entre 10.99 y 60.99 basado en el ID
+                        price: game.price || ((game.id % 50) + 10.99) 
+                    }));
+                    
+                    setGames(gamesWithPrices);
                     setLoading(false);
                 })
                 .catch((err) => {
@@ -84,7 +92,6 @@ function Catalogo() {
                     }
                 });
         };
-
         attemptFetch();
     };
 
@@ -93,15 +100,12 @@ function Catalogo() {
     }, [selectedGenre]);
 
     const getCoverUrl = (cover?: Cover) => {
-        // Fallback placeholder image for missing covers
         if (!cover?.url) return 'https://placehold.co/264x374/334155/ffffff?text=No+Image';
-        // The covers from the IGDB API (often proxied via the server) usually don't need size modification here
         return cover.url;
     };
-
+    
     const formatDate = (timestamp?: number) => {
         if (!timestamp) return 'Fecha desconocida';
-        // Convert seconds to milliseconds for Date constructor
         return new Date(timestamp * 1000).toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
@@ -112,35 +116,31 @@ function Catalogo() {
     const handleGenreChange = (genreId: string) => {
         console.log(`🎮 Cambiando a género: ${genreId}`);
         setSelectedGenre(genreId);
+        setSearchTerm(''); 
     };
-
-    // --- Tailwind Classes for Dark Theme ---
+    
     const primaryButtonClasses = "bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-xl font-semibold cursor-pointer transition duration-300 ease-in-out hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg hover:shadow-indigo-500/50 active:translate-y-0 shadow-md";
-    // Updated secondary button for better contrast on bg-gray-800
     const secondaryButtonClasses = "bg-gray-700 text-white p-3 rounded-xl font-semibold cursor-pointer transition duration-300 ease-in-out border-2 border-gray-600 hover:bg-gray-600 hover:border-gray-500 shadow-sm";
 
-
-    /* --- Loading State (Updated background) --- */
+    // --- Estados de Carga y Error ---
     if (loading) {
-        return (
-            <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-800">
+        return ( 
+            <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-900">
                 <div className="flex flex-col items-center justify-center text-white">
                     <h2 className="text-3xl font-bold mb-4">Cargando catálogo...</h2>
                     <div className="w-12 h-12 border-4 border-t-white border-opacity-30 border-solid rounded-full animate-spin"></div>
                     <p className="mt-4 text-gray-300 text-lg text-center">
                         {selectedGenre !== 'todos'
                             ? `Filtrando por ${genres.find(g => g.id === selectedGenre)?.name}...`
-                            : 'Cargando todos los juegos populares...'}
+                            : ''}
                     </p>
                 </div>
             </div>
         );
     }
-
-    /* --- Error State (Updated background) --- */
     if (error) {
-        return (
-            <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-800">
+        return ( 
+            <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden flex justify-center items-center bg-gray-900">
                 <div className="text-center text-white p-8 rounded-xl bg-red-600 bg-opacity-80 backdrop-blur-sm shadow-2xl">
                     <h2 className="text-3xl font-bold mb-4">Error al cargar el catálogo</h2>
                     <p className="mb-6">{error}</p>
@@ -149,58 +149,67 @@ function Catalogo() {
                     </button>
                 </div>
             </div>
-        );
+         );
     }
 
-    /* --- Main Content (Updated background and header styles) --- */
+    // --- Lógica de Filtro ---
+    const filteredGames = games.filter(game =>
+        game.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    /* --- Main Content --- */
     return (
-        <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden bg-gray-800 font-sans">
+        <div className="min-h-screen p-8 w-full max-w-full overflow-x-hidden bg-gray-900 font-sans">
+            
             <header className="text-center mb-12 text-white max-w-full">
-                <h1 className="text-5xl font-extrabold mb-2 text-shadow-md lg:text-6xl text-indigo-300">Catálogo de Juegos</h1>
+                <h1 className="text-5xl font-extrabold mb-2 text-shadow-md lg:text-6xl ">Catálogo de Juegos</h1>
                 <p className="text-xl opacity-90 mb-4 text-gray-200">
                     {selectedGenre === 'todos'
-                        ? 'Explora los juegos mejor valorados'
+                        ? ''
                         : `Juegos de ${genres.find(g => g.id === selectedGenre)?.name}`}
                 </p>
 
-                {/* Filtro de género - Updated for dark theme */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mx-auto p-4 bg-gray-900 bg-opacity-70 rounded-2xl shadow-2xl backdrop-blur-md max-w-xl border border-gray-700">
-                    <label htmlFor="genre-select" className="text-lg font-semibold text-white">
-                        Filtrar por género:
-                    </label>
-                    <select
-                        id="genre-select"
-                        // Updated classes for dark theme: bg-gray-900, text-white, border-gray-600
-                        className="p-3 text-lg border-2 border-gray-600 rounded-xl bg-gray-900 text-white cursor-pointer transition duration-300 ease-in-out min-w-[200px] max-w-full font-medium appearance-none shadow-lg focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-400 focus:ring-opacity-50 hover:shadow-xl"
-                        value={selectedGenre}
-                        onChange={(e) => handleGenreChange(e.target.value)}
-                    >
-                        {genres.map((genre) => (
-                            <option key={genre.id} value={genre.id} className="bg-gray-900 text-white">
-                                {genre.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-4 mx-auto max-w-4xl w-full mt-6">
+                    {/* Grupo Búsqueda */}
+                    <div className="relative w-full md:w-1/2">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre..."
+                            className="w-full p-3 pl-12 text-lg border-2 border-gray-600 rounded-xl bg-gray-900 text-white shadow-lg focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-400 focus:ring-opacity-50"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
 
-                <div className="mt-6 flex flex-wrap justify-center gap-4">
-                    <span className="bg-gray-700 p-2 px-4 rounded-full font-semibold text-white text-sm shadow-md">
-                        🔥 {games.length} juegos {selectedGenre !== 'todos' && `de ${genres.find(g => g.id === selectedGenre)?.name}`}
-                    </span>
-                    <button
-                        className="bg-gray-700 p-2 px-4 rounded-full font-semibold text-white text-sm shadow-md cursor-pointer transition duration-300 ease-in-out hover:bg-gray-600 hover:-translate-y-0.5"
-                        onClick={fetchGames}
-                        title="Recargar catálogo"
-                    >
-                        🔄 Recargar
-                    </button>
+                    {/* Grupo Filtro */}
+                    <div className="flex items-center gap-2 w-full md:w-1/2">
+                        <label htmlFor="genre-select" className="text-lg font-semibold text-white flex-shrink-0">
+                            Género:
+                        </label>
+                        <select
+                            id="genre-select"
+                            className="p-3 text-lg border-2 border-gray-600 rounded-xl bg-gray-900 text-white cursor-pointer transition duration-300 ease-in-out w-full font-medium appearance-none shadow-lg focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-400 focus:ring-opacity-50 hover:shadow-xl"
+                            value={selectedGenre}
+                            onChange={(e) => handleGenreChange(e.target.value)}
+                        >
+                            {genres.map((genre) => (
+                                <option key={genre.id} value={genre.id} className="bg-gray-900 text-white">
+                                    {genre.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </header>
-
+            
             {/* Game Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 max-w-7xl mx-auto w-full p-0">
-                {games.map((game) => (
-                    // Card color remains white for contrast, but adjusted shadow
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto w-full p-0">
+                {filteredGames.map((game) => (
                     <div key={game.id} className="bg-white rounded-2xl overflow-hidden shadow-2xl transition duration-300 ease-in-out hover:-translate-y-2 hover:shadow-indigo-500/50 flex flex-col w-full">
                         <div className="relative w-full h-80 overflow-hidden bg-gray-900">
                             <img
@@ -209,7 +218,6 @@ function Catalogo() {
                                 className="w-full h-full object-cover transition duration-500 ease-in-out transform hover:scale-105"
                                 loading="lazy"
                                 onError={(e) => {
-                                    // Fallback to placeholder on error
                                     e.currentTarget.onerror = null;
                                     e.currentTarget.src = 'https://placehold.co/264x374/334155/ffffff?text=No+Image';
                                 }}
@@ -220,7 +228,7 @@ function Catalogo() {
                                 </div>
                             )}
                         </div>
-
+                        
                         <div className="p-4 flex flex-col gap-3 flex-grow">
                             <h3 className="text-xl font-extrabold text-gray-800 m-0 leading-tight line-clamp-2">{game.name}</h3>
 
@@ -268,12 +276,22 @@ function Catalogo() {
                                 </p>
                             )}
 
+                            {/* --- 👇 CAMBIO 2: Sección de Precio en Dólares --- */}
+                            <div className="flex justify-between items-end mt-auto pt-2 mb-2">
+                                <div className="flex flex-col">
+                                    <span className="text-xs text-gray-500 uppercase font-bold">Precio</span>
+                                    <span className="text-2xl font-extrabold  tracking-tight">
+                                        US$ {game.price?.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+
                             {/* Actions */}
-                            <div className="flex gap-3 mt-auto pt-4">
-                                <button className={`${primaryButtonClasses} flex-1 text-sm`}>
-                                    Ver detalles
-                                </button>
-                                <button className={`${secondaryButtonClasses} flex-1 text-sm`}>
+                            <div className="flex gap-3">
+                                <button 
+                                    className={`${secondaryButtonClasses} flex-1 text-sm`}
+                                    onClick={() => addToCart(game)}
+                                >
                                     🛒 Agregar
                                 </button>
                             </div>
@@ -283,10 +301,16 @@ function Catalogo() {
             </div>
 
             {/* --- No Results State --- */}
-            {games.length === 0 && (
+            {filteredGames.length === 0 && !loading && (
                 <div className="text-center text-white p-16">
                     <h2 className="text-3xl font-bold mb-4">🔍 No se encontraron juegos</h2>
-                    <p className="text-xl mb-6">No hay juegos de {genres.find(g => g.id === selectedGenre)?.name}</p>
+                    
+                    {searchTerm ? (
+                        <p className="text-xl mb-6">No hay juegos que coincidan con "{searchTerm}"</p>
+                    ) : (
+                        <p className="text-xl mb-6">No hay juegos de {genres.find(g => g.id === selectedGenre)?.name}</p>
+                    )}
+                    
                     <button
                         className={primaryButtonClasses.replace('p-3', 'p-2.5')}
                         onClick={() => setSelectedGenre('todos')}
