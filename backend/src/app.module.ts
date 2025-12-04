@@ -4,17 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController, HolaMundoController } from './app.controller';
 import { AppService, HolaMundoService } from './app.service';
 import { CatalogoModule } from './catalogo/catalogo.module';
-import { UsuariosModule } from './usuarios/usuarios.module'; // 👈 1. Importar el archivo
+import { BoletasModule } from './boletas/boletas.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
-    // 1. Configuración
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-
-    // 2. Base de Datos
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
@@ -24,10 +22,9 @@ import { UsuariosModule } from './usuarios/usuarios.module'; // 👈 1. Importar
         rejectUnauthorized: false,
       },
     }),
-
-    // 3. Módulos de Negocio
     CatalogoModule,
-    UsuariosModule, // 👈 2. Agregar al array de imports
+    BoletasModule,
+    UsuariosModule
   ],
   controllers: [AppController, HolaMundoController],
   providers: [AppService, HolaMundoService],

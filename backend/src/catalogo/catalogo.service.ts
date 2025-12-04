@@ -201,4 +201,50 @@ export class CatalogoService implements OnModuleInit { // Implementa OnModuleIni
         return datosFiltrados;
         
     }
+
+    async obtenerDetallesJuego(gameId: number) {
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post("https://api.igdb.com/v4/games",
+                    `fields name, summary, storyline, genres.name, platforms.name, 
+                    cover.url, screenshots.url, artworks.url, 
+                    total_rating, total_rating_count,
+                    involved_companies.company.name, involved_companies.developer, involved_companies.publisher,
+                    websites.url, game_modes.name, themes.name;
+                    where id = ${gameId};`,
+                    {
+                        headers: this.getHeaders(),
+                    }
+                )
+            );
+
+            if (response.data && response.data.length > 0) {
+                const juego = response.data[0];
+                
+                // Procesar URLs de imágenes
+                if (juego.cover?.url) {
+                    juego.cover.url = `https:${juego.cover.url.replace('t_thumb', 't_cover_big')}`;
+                }
+                if (juego.screenshots) {
+                    juego.screenshots = juego.screenshots.map(screenshot => ({
+                        ...screenshot,
+                        url: `https:${screenshot.url.replace('t_thumb', 't_screenshot_big')}`
+                    }));
+                }
+                if (juego.artworks) {
+                    juego.artworks = juego.artworks.map(artwork => ({
+                        ...artwork,
+                        url: `https:${artwork.url.replace('t_thumb', 't_1080p')}`
+                    }));
+                }
+
+                return juego;
+            }
+
+            return null;
+        } catch (error) {
+            console.error(`❌ Error obteniendo detalles del juego ${gameId}:`, error.message);
+            throw new Error(`Error obteniendo detalles: ${error.message}`);
+        }
+    }
 }

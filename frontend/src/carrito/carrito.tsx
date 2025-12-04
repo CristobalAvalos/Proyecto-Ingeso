@@ -1,39 +1,105 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 const Carrito: React.FC = () => {
   // 👈 ACTUALIZADO: Traemos clearCart del contexto
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [status, setStatus] = useState<'cart' | 'loading' | 'success'>('cart');
+  const [error, setError] = useState<string | null>(null);
   
   // Estado para el recibo final
   const [orderSummary, setOrderSummary] = useState<{ items: typeof cartItems, total: number } | null>(null);
+  const [boletaId, setBoletaId] = useState<number | null>(null);
 
   // Cálculos matemáticos
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
 
   // Lógica de pago
-  const handlePayment = () => {
-    setStatus('loading'); // 1. UI de carga
+  const handlePayment = async () => {
+    // Verificar que el usuario esté logueado
+    if (!user) {
+      alert('Debes iniciar sesión para realizar una compra');
+      navigate('/login');
+      return;
+    }
 
-    // 2. Simulamos la espera de la pasarela de pago
-    setTimeout(() => {
-      // A. Guardamos la "foto" del carrito actual para mostrar el recibo
-      // (Es importante hacer esto ANTES de vaciar el carrito)
+    setStatus('loading'); // 1. UI de carga
+    setError(null);
+
+    try {
+      // Preparar los datos
+      const requestData = {
+        usuario_id: user.id,
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      };
+
+      console.log('📦 Enviando datos al backend:', requestData);
+
+      // 2. Crear la boleta en el backend
+      const response = await fetch('http://localhost:3000/boletas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      console.log('📡 Respuesta del servidor:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+        console.error('❌ Error del servidor:', errorData);
+        throw new Error(errorData.message || 'Error al procesar la compra');
+      }
+
+      const boleta = await response.json();
+      console.log('✅ Boleta creada:', boleta);
+
+      // 3. Marcar la boleta como pagada (simulando pasarela de pago exitosa)
+      const pagoResponse = await fetch(`http://localhost:3000/boletas/${boleta.id}/pagar`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metodo_pago: 'Tarjeta de Crédito'
+        })
+      });
+
+      if (pagoResponse.ok) {
+        console.log('✅ Boleta marcada como pagada');
+      }
+
+      // 4. Guardar el resumen de la orden
       setOrderSummary({
         items: [...cartItems],
         total: total
       });
 
-      // B. 👈 AQUÍ VACIAMOS EL CARRITO GLOBAL
-      clearCart(); 
+      setBoletaId(boleta.id);
 
-      // C. Cambiamos a la vista de éxito
-      setStatus('success'); 
-    }, 2500);
+      // 5. Limpiar el carrito
+      clearCart();
+
+      // 6. Cambiar a vista de éxito
+      setStatus('success');
+
+    } catch (err: any) {
+      console.error('❌ Error al procesar el pago:', err);
+      setError(err.message || 'Error al procesar la compra. Por favor intenta de nuevo.');
+      setStatus('cart');
+    }
   };
 
   // -------------------------------------------------------------------
@@ -66,6 +132,7 @@ const Carrito: React.FC = () => {
               </svg>
             </div>
             <h2 className="text-3xl font-bold text-white">¡Pago Exitoso!</h2>
+            <p className="text-green-100 mt-2">Boleta #{boletaId}</p>
           </div>
 
           {/* Cuerpo del Recibo */}
@@ -83,28 +150,39 @@ const Carrito: React.FC = () => {
                     />
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Cantidad: {item.quantity}
+                      </p>
                     </div>
                   </div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    US$ {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className=" border-gray-200 dark:border-gray-600 pt-4">
+            <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
               <div className="flex justify-between items-center mb-6">
                 <span className="text-xl font-bold text-gray-900 dark:text-white">Total Pagado:</span>
-                <span className="text-2xl font-bold text-white">${orderSummary.total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-green-600">US$ {orderSummary.total.toFixed(2)}</span>
               </div>
             </div>
 
-            <Link 
-              to="/" 
-              className="block w-full text-center bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded transition duration-150"
-            >
-              Volver a la Tienda
-            </Link>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate(`/boleta/${boletaId}`)}
+                className="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded transition duration-150"
+              >
+                Ver Boleta Completa
+              </button>
+              <Link 
+                to="/" 
+                className="block w-full text-center bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded transition duration-150"
+              >
+                Volver a la Tienda
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -152,6 +230,13 @@ const Carrito: React.FC = () => {
             Volver al Catálogo
           </Link>
         </div>
+
+        {/* Mostrar error si existe */}
+        {error && (
+          <div className="mb-4 bg-red-600 bg-opacity-20 border border-red-600 text-red-600 px-4 py-3 rounded">
+            <p className="font-semibold">Error: {error}</p>
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Columna Izquierda */}

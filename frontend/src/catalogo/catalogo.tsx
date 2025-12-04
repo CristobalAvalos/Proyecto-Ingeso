@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 // Correcto
 import { useCart } from "../context/CartContext";
 
@@ -36,6 +37,7 @@ function Catalogo() {
     const [selectedGenre, setSelectedGenre] = useState<string>('todos');
     const [searchTerm, setSearchTerm] = useState<string>('');
     const { addToCart } = useCart();
+    const navigate = useNavigate();
 
     // --- Datos y Lógica ---
     const genres = [
@@ -288,6 +290,12 @@ function Catalogo() {
 
                             {/* Actions */}
                             <div className="flex gap-3">
+                                <button 
+                                    className={`${secondaryButtonClasses} flex-1 text-sm`}
+                                    onClick={() => navigate(`/producto/${game.id}`)}
+                                >
+                                    👁️ Ver Detalles
+                                </button>
                                 <button 
                                     className={`${secondaryButtonClasses} flex-1 text-sm`}
                                     onClick={() => addToCart(game)}
