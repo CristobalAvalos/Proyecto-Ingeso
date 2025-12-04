@@ -22,7 +22,7 @@ export class DetalleBoleta {
     videojuego: Videojuego;
 
     @Column()
-    nombre_producto: string; // Guardar el nombre por si se elimina el juego
+    nombre_producto: string;
 
     @Column('decimal', { precision: 10, scale: 2 })
     precio_unitario: number;
