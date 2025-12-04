@@ -161,7 +161,7 @@ function MisBoletas() {
                     <div className="text-center py-12 bg-white border border-gray-300 rounded">
                         <p className="text-xl mb-4">No hay boletas</p>
                         <button
-                            onClick={() => navigate('/catalogo')}
+                            onClick={() => navigate('/')}
                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                         >
                             Ir al Catálogo

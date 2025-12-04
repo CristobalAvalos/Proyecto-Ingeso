@@ -41,8 +41,8 @@ function NavBar() {
               Catálogo
             </Link>
 
-            {/* Enlace a Mis Boletas (solo usuarios logueados) */}
-            {user && (
+            {/* Enlace a Mis Boletas (solo usuarios logueados NO admin) */}
+            {user && user.rol !== 'admin' && (
               <Link 
                 to="/mis-boletas" 
                 className="text-white text-lg font-semibold hover:text-gray-300 transition duration-150"
