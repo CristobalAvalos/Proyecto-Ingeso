@@ -86,13 +86,13 @@ function MisBoletas() {
 
     const getEstadoBadge = (estado: string) => {
         const styles = {
-            pendiente: 'bg-yellow-200 text-yellow-800',
-            pagada: 'bg-green-200 text-green-800',
-            cancelada: 'bg-red-200 text-red-800'
+            pendiente: 'bg-yellow-200 text-yellow-900',
+            pagada: 'bg-green-200 text-green-900',
+            cancelada: 'bg-red-200 text-red-900'
         };
 
         return (
-            <span className={`${styles[estado as keyof typeof styles] || 'bg-gray-200 text-gray-800'} px-2 py-1 text-xs font-bold uppercase`}>
+            <span className={`${styles[estado as keyof typeof styles] || 'bg-gray-700 text-gray-300'} px-2 py-1 text-xs font-bold uppercase rounded`}>
                 {estado}
             </span>
         );
@@ -145,24 +145,24 @@ function MisBoletas() {
                 <div className="mb-8">
                     <button
                         onClick={() => navigate('/')}
-                        className="mb-4 flex items-center gap-2 text-gray-300 hover:text-white transition"
+                        className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                         </svg>
                         Volver
                     </button>
-                    <h1 className="text-4xl md:text-5xl font-extrabold mb-2">Mis Boletas</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold mb-2 text-white">Mis Boletas</h1>
                     <p className="text-gray-400">Historial de todas tus compras</p>
                 </div>
 
                 {/* Lista de Boletas */}
                 {boletas.length === 0 ? (
-                    <div className="text-center py-12 bg-white border border-gray-300 rounded">
-                        <p className="text-xl mb-4">No hay boletas</p>
+                    <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
+                        <p className="text-xl mb-4 text-white">No hay boletas</p>
                         <button
                             onClick={() => navigate('/')}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
                         >
                             Ir al Catálogo
                         </button>
@@ -170,16 +170,16 @@ function MisBoletas() {
                 ) : (
                     <div className="space-y-4">
                         {boletas.map((boleta) => (
-                            <div key={boleta.id} className="bg-white border border-gray-300 p-4">
+                            <div key={boleta.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-lg">
                                 {/* Header de la boleta */}
-                                <div className="flex justify-between items-start mb-3 pb-3 border-b">
+                                <div className="flex justify-between items-start mb-3 pb-3 border-b border-gray-700">
                                     <div>
-                                        <h3 className="text-lg font-bold">Boleta #{boleta.id}</h3>
-                                        <p className="text-sm text-gray-600">
+                                        <h3 className="text-lg font-bold text-white">Boleta #{boleta.id}</h3>
+                                        <p className="text-sm text-gray-400">
                                             {formatDate(boleta.fecha_creacion)}
                                         </p>
                                         {boleta.fecha_pago && (
-                                            <p className="text-xs text-green-700 mt-1">
+                                            <p className="text-xs text-green-400 mt-1 font-semibold">
                                                 Pagada: {formatDate(boleta.fecha_pago)}
                                                 {boleta.metodo_pago && ` - ${boleta.metodo_pago}`}
                                             </p>
@@ -193,29 +193,29 @@ function MisBoletas() {
                                 {/* Productos */}
                                 <div className="mb-3">
                                     {boleta.detalles.map((detalle) => (
-                                        <div key={detalle.id} className="flex justify-between py-2 border-b border-gray-200">
+                                        <div key={detalle.id} className="flex justify-between py-2 border-b border-gray-700 last:border-0">
                                             <div>
-                                                <p className="font-medium text-gray-900">{detalle.nombre_producto}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="font-medium text-white">{detalle.nombre_producto}</p>
+                                                <p className="text-xs text-gray-400">
                                                     Cantidad: {detalle.cantidad} × ${Number(detalle.precio_unitario).toFixed(2)}
                                                 </p>
                                             </div>
-                                            <p className="font-semibold text-gray-900">${Number(detalle.subtotal).toFixed(2)}</p>
+                                            <p className="font-semibold text-white">${Number(detalle.subtotal).toFixed(2)}</p>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Total */}
-                                <div className="flex justify-between pt-2 border-t font-bold text-gray-900">
+                                <div className="flex justify-between pt-3 border-t border-gray-700 font-bold text-white text-lg">
                                     <span>TOTAL:</span>
                                     <span>${Number(boleta.total).toFixed(2)}</span>
                                 </div>
                                 
                                 <button
                                     onClick={() => navigate(`/boleta/${boleta.id}`)}
-                                    className="mt-3 w-full bg-blue-500 text-white py-2 text-sm hover:bg-blue-600"
+                                    className="mt-4 w-full bg-blue-600 text-white py-2 text-sm font-semibold rounded hover:bg-blue-700 transition duration-200"
                                 >
-                                    Ver Detalle
+                                    Ver Detalle Completo
                                 </button>
                             </div>
                         ))}
