@@ -3,6 +3,9 @@ import Login from "./login/login";
 import Catalogo from './catalogo/catalogo';
 import Carrito from './carrito/carrito';
 import AdminDashboard from './admindashboard/AdminDashboard';
+import ProductoDetalle from './producto/ProductoDetalle';
+import MisBoletas from './boletas/MisBoletas';
+import DetallesBoleta from './boletas/DetallesBoleta';
 
 // Importamos los contextos
 import { CartProvider, useCart } from './context/CartContext'; 
@@ -37,6 +40,16 @@ function NavBar() {
             <Link to="/" className="text-white text-lg font-semibold hover:text-gray-300 transition duration-150">
               Catálogo
             </Link>
+
+            {/* Enlace a Mis Boletas (solo usuarios logueados NO admin) */}
+            {user && user.rol !== 'admin' && (
+              <Link 
+                to="/mis-boletas" 
+                className="text-white text-lg font-semibold hover:text-gray-300 transition duration-150"
+              >
+                Mis Boletas
+              </Link>
+            )}
 
             {/* Botón exclusivo para ADMIN */}
             {user && user.rol === 'admin' && (
@@ -121,6 +134,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/carrito" element={<Carrito />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />}/>
+            <Route path="/producto/:id" element={<ProductoDetalle />} />
+            <Route path="/mis-boletas" element={<MisBoletas />} />
+            <Route path="/boleta/:id" element={<DetallesBoleta />} />
           </Routes>
 
         </CartProvider>

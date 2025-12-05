@@ -37,4 +37,38 @@ export class CatalogoController {
         }
     }
 
+    @Get('detalles/:id')
+    async obtenerDetalles(@Param('id') id: string) {
+        try {
+            const gameId = parseInt(id, 10);
+            if (isNaN(gameId)) {
+                throw new HttpException(
+                    'ID de juego inválido',
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+            
+            const detalles = await this.catalogoService.obtenerDetallesJuego(gameId);
+            
+            if (!detalles) {
+                throw new HttpException(
+                    'Juego no encontrado',
+                    HttpStatus.NOT_FOUND
+                );
+            }
+            
+            return detalles;
+        } catch (error: any) {
+            console.error("Error obteniendo detalles:", error.message);
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: `Error al obtener detalles del juego`,
+                    error: error.message,
+                },
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
 }

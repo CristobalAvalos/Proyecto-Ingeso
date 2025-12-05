@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Esto asegura que el contenedor del login ocupe toda la pantalla */
 html, body, #root {
